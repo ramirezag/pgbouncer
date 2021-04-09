@@ -1,6 +1,17 @@
 # Overview
 
-Minimal docker implementation of [pgbouncer](https://www.pgbouncer.org). The goal is to abstract the building and running of [pgbouncer](https://www.pgbouncer.org) but keep the [usage](https://www.pgbouncer.org/usage.html) very flexible and not reinventing it. 
+Minimal docker implementation of [pgbouncer](https://www.pgbouncer.org). The goal is to abstract the building and running of [pgbouncer](https://www.pgbouncer.org) but keep the [usage](https://www.pgbouncer.org/usage.html) very flexible and not reinventing it.
+
+This is the default config used by this image:
+
+```ini
+[pgbouncer]
+listen_addr = 0.0.0.0
+listen_port = 6432
+pool_mode = session
+```
+
+You can override them along with other [configs](https://github.com/pgbouncer/pgbouncer/blob/master/etc/pgbouncer.ini) by specifying environment variables whose key/name matches to the upper case key of [pgbouncer ini](https://github.com/pgbouncer/pgbouncer/blob/master/etc/pgbouncer.ini).
 
 # Features:
 
@@ -11,13 +22,15 @@ Minimal docker implementation of [pgbouncer](https://www.pgbouncer.org). The goa
 
 # Usage
 
+You can spawn an instance of this docker image by executing `docker run -p 6432:6432 ramirezag/pgbouncer:1.0.0`. However, the instance is not useable since you did not specify any database config. Below are sample setup to make the instance useable.
+
 ### Access to destination database will go with single user
 
 1. Create `databases.ini` then add
 
     ```shell
     [databases]
-    forcedb = host=localhost port=300 user=baz password=foo client_encoding=UNICODE datestyle=ISO
+    template1 = host=localhost port=6432 user=someuser password=somepass dbname=template1 client_encoding=UNICODE datestyle=ISO
     ```
 
 2. Execute
@@ -26,9 +39,12 @@ Minimal docker implementation of [pgbouncer](https://www.pgbouncer.org). The goa
     docker run --rm \
         -v "$(pwd)"/databases.ini:/app/databases.ini
         -e DATABASES_FILE=/app/databases.ini \
-        -p 5432:5432 \
+        -p 6432:6432 \
         ramirezag/pgbouncer
     ```
+
+3. Connect to pgbouncer - `psql -p 6432 -U someuser template1`
+
 
 ### Use `DATABASES_FILE` to create db info and override some configs
 
@@ -36,7 +52,7 @@ Minimal docker implementation of [pgbouncer](https://www.pgbouncer.org). The goa
 
     ```shell
     [databases]
-    template1 = host=localhost dbname=template1 auth_user=someuser
+    template1 = host=localhost dbname=template1 port=5432
     
     [pgbouncer]
     pool_mode = session
@@ -46,44 +62,46 @@ Minimal docker implementation of [pgbouncer](https://www.pgbouncer.org). The goa
     auth_file = /app/users.txt
     logfile = pgbouncer.log
     pidfile = pgbouncer.pid
-    admin_users = someuser
+    admin_users = adminuser
     stats_users = stat_collector
     ```
 
 2. Create `users.txt` (see [authentication file format](https://www.pgbouncer.org/config.html#authentication-file-format)) then add
 
     ```shell
-    "username1" "password"
+    "someuser" "somepassword"
     ```
 
 3. Execute
-   
+
     ```shell
     docker run --rm \
         -v "$(pwd)"/databases.ini:/app/databases.ini
         -v "$(pwd)"/users.txt:/app/users.txt
         -e DATABASES_FILE=/app/databases.ini \
-        -p 5432:5432 \
+        -p 6432:6432 \
         ramirezag/pgbouncer
     ```
 
-### Use `DATABASES_FILE`, `AUTH_TYPE` and`AUTH_FILE` to create db info and override some configs
+4. Connect to pgbouncer - `psql -p 6432 -U someuser template1`
+
+### Use `DATABASES_FILE`, `AUTH_TYPE` and`AUTH_FILE` to set db info,
 
 1. Create `databases.ini` then add
 
     ```shell
     [databases]
-    template1 = host=localhost dbname=template1 auth_user=someuser
+    template1 = host=localhost dbname=template1 port=5432
     ```
 
 2. Create `users.txt` then add
 
     ```shell
-    "username1" "password"
+    "username1" "somepassword"
     ```
 
 3. Execute
-   
+
     ```shell
     docker run --rm \
         -v "$(pwd)"/databases.ini:/app/databases.ini
@@ -91,6 +109,8 @@ Minimal docker implementation of [pgbouncer](https://www.pgbouncer.org). The goa
         -e DATABASES_FILE=/app/databases.ini \
         -e AUTH_TYPE=md5 \
         -e AUTH_FILE=/app/users.txt \
-        -p 5432:5432 \
+        -p 6432:6432 \
         ramirezag/pgbouncer
     ```
+
+4. Connect to pgbouncer - `psql -p 6432 -U someuser template1`
