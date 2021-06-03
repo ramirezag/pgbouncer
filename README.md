@@ -13,18 +13,18 @@ pool_mode = session
 
 You can override them along with other [configs](https://github.com/pgbouncer/pgbouncer/blob/master/etc/pgbouncer.ini) by specifying environment variables whose key/name matches to the upper case key of [pgbouncer ini](https://github.com/pgbouncer/pgbouncer/blob/master/etc/pgbouncer.ini).
 
-# Features:
+# Features
 
 * Built on Alpine with minimal libraries (libevent and c-ares) installed to make pgbouncer work.
-* Tuning of configs (except databases) through environmment variables whose key/name is an upper case of the keys in [pgbouncer.ini](https://github.com/pgbouncer/pgbouncer/blob/master/etc/pgbouncer.ini). Eg. To override [pool_mode](https://www.pgbouncer.org/config.html#pool_mode-1) (which is set to session by default), just set the environment variable `POOL_MODE`. See [pgbouncer config](https://www.pgbouncer.org/config.html) for more details.
+* Tuning of configs (except databases) through environment variables whose key/name is an upper case of the keys in [pgbouncer.ini](https://github.com/pgbouncer/pgbouncer/blob/master/etc/pgbouncer.ini). Eg. To override [pool_mode](https://www.pgbouncer.org/config.html#pool_mode-1) (which is set to session by default), just set the environment variable `POOL_MODE`. See [pgbouncer config](https://www.pgbouncer.org/config.html) for more details.
 * Databases file is read if environment variable `DATABASES_FILE` is set
-* For flexibility and easy maintenance of this docker image, environment variables `DATABASES_FILE`, `AUTH_TYPE` and`AUTH_FILE` are not marked as required. It's the responsibility of the user to set those variables. Otherwise, an instance of this without those variables would make it unuseable. See [pgbouncer usage](https://www.pgbouncer.org/usage.html) for more details.
+* For flexibility and easy maintenance of this docker image, environment variables `DATABASES_FILE`, `AUTH_TYPE` and`AUTH_FILE` are not marked as required. It is the responsibility of the user to set those variables. Otherwise, an instance of this without those variables would make it unusable - see [pgbouncer usage](https://www.pgbouncer.org/usage.html) for more details.
 
 # Usage
 
-You can spawn an instance of this docker image by executing `docker run -p 6432:6432 ramirezag/pgbouncer:1.0.0`. However, the instance is not useable since you did not specify any database config. Below are sample setup to make the instance useable.
+You can spawn an instance of this docker image by executing `docker run -p 6432:6432 ramirezag/pgbouncer:2.0.0`. However, the instance is not usable since you did not specify any database config. Below are sample setup to make the instance usable:
 
-### Access to destination database will go with single user
+## Access to destination database will go with single user
 
 1. Create `databases.ini` then add
 
@@ -46,7 +46,7 @@ You can spawn an instance of this docker image by executing `docker run -p 6432:
 3. Connect to pgbouncer - `psql -p 6432 -U someuser template1`
 
 
-### Use `DATABASES_FILE` to create db info and override some configs
+## Use `DATABASES_FILE` to create db info and override some configs
 
 1. Create `databases.ini` then add
 
@@ -85,7 +85,7 @@ You can spawn an instance of this docker image by executing `docker run -p 6432:
 
 4. Connect to pgbouncer - `psql -p 6432 -U someuser template1`
 
-### Use `DATABASES_FILE`, `AUTH_TYPE` and`AUTH_FILE` to set db info,
+## Use `DATABASES_FILE`, `AUTH_TYPE` and`AUTH_FILE` to set db info,
 
 1. Create `databases.ini` then add
 
@@ -114,3 +114,7 @@ You can spawn an instance of this docker image by executing `docker run -p 6432:
     ```
 
 4. Connect to pgbouncer - `psql -p 6432 -U someuser template1`
+
+## Authentication notes
+
+You can use [AUTH_QUERY](https://www.pgbouncer.org/config.html#auth_query) instead of AUTH_FILE to avoid having to maintain a separate authentication file. However, it requires configuration in the target DB.

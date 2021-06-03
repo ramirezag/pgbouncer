@@ -22,10 +22,12 @@ done </etc/pgbouncer/overrides.ini
 
 mv ${tmp_file} ${overrides_ini}
 
-if [[ "${DATABASES_FILE}" ]]; then
-  cp ${DATABASES_FILE} /etc/pgbouncer/databases.ini
-else
-  touch /etc/pgbouncer/databases.ini
+if [[ -z "${DATABASES_FILE}" ]]; then
+  DATABASES_FILE="/etc/pgbouncer/databases.ini"
+  touch ${DATABASES_FILE}
 fi
 
-pgbouncer -u nobody /etc/pgbouncer/pgbouncer.ini
+pgbouncer_ini_file="/etc/pgbouncer/pgbouncer.ini"
+sed -i "s|<DATABASES_FILE>|${DATABASES_FILE}|g" ${pgbouncer_ini_file}
+
+pgbouncer -u nobody ${pgbouncer_ini_file}
