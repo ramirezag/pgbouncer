@@ -18,6 +18,6 @@ COPY --from=builder /build/pgbouncer /usr/local/bin
 COPY *.ini /etc/pgbouncer/
 COPY pgbouncer.sh /usr/local/bin/
 # Install minimum package requirements to run pgbouncer. Bash is needed for scripting in pgbouncer.sh
-RUN apk add libevent c-ares && chmod +x /usr/local/bin/pgbouncer.sh
+RUN apk add libevent c-ares bash && chmod +x /usr/local/bin/pgbouncer.sh
 CMD ["/usr/local/bin/pgbouncer.sh"]
 ENTRYPOINT ["/bin/sh", "-c"]
