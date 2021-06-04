@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 set -e
 
-overrides_ini=/etc/pgbouncer/overrides.ini
-tmp_file="${overrides_ini}_tmp"
+pgbouncer_ini_file="/etc/pgbouncer/pgbouncer.ini"
+tmp_file="${pgbouncer_ini_file}_tmp"
+
+LISTEN_ADDR=${LISTEN_ADDR:-*}
 
 while read line; do
   echo $line >> ${tmp_file}
   if [[ $line == ";"[a-z]* ]]; then
-    OIFS=IFS
+    OIFS=${IFS}
     IFS='='
     read -a kv <<< "${line}"
     IFS=${OIFS}
@@ -18,16 +20,21 @@ while read line; do
       echo "${key} = ${val}" >> ${tmp_file}
     fi
   fi
-done </etc/pgbouncer/overrides.ini
+done <${pgbouncer_ini_file}
 
-mv ${tmp_file} ${overrides_ini}
-
-if [[ -z "${DATABASES_FILE}" ]]; then
-  DATABASES_FILE="/etc/pgbouncer/databases.ini"
-  touch ${DATABASES_FILE}
+if [[ -z "${DATABASES_INI}" ]]; then
+  DATABASES_INI="/etc/pgbouncer/databases.ini"
+  touch ${DATABASES_INI}
 fi
 
-pgbouncer_ini_file="/etc/pgbouncer/pgbouncer.ini"
-sed -i "s|<DATABASES_FILE>|${DATABASES_FILE}|g" ${pgbouncer_ini_file}
+if [[ -z "${USERS_INI}" ]]; then
+  USERS_INI="/etc/pgbouncer/users.ini"
+  touch ${USERS_INI}
+fi
 
-pgbouncer -u nobody ${pgbouncer_ini_file}
+sed -i "s|<DATABASES_INI>|${DATABASES_INI}|g" ${tmp_file}
+sed -i "s|<USERS_INI>|${USERS_INI}|g" ${tmp_file}
+
+mv ${tmp_file} ${pgbouncer_ini_file}
+
+pgbouncer -u pgbouncer ${pgbouncer_ini_file}
